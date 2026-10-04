@@ -1,0 +1,241 @@
+const express = require("express");
+const cors = require("cors");
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+const products = [
+  {
+    id: 1,
+    name: "Organic Milk",
+    category: "Groceries",
+    price: 42,
+    originalPrice: 58,
+    rating: 4.8,
+    stock: 28,
+    image:
+      "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=900&q=80",
+    badge: "Fresh",
+    unit: "1 L",
+    description: "Farm-fresh organic milk with rich taste and zero artificial additives.",
+    tagline: "Protein-rich daily nutrition"
+  },
+  {
+    id: 2,
+    name: "Whole Wheat Bread",
+    category: "Groceries",
+    price: 35,
+    originalPrice: 48,
+    rating: 4.7,
+    stock: 18,
+    image:
+      "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80",
+    badge: "Bestseller",
+    unit: "400 g",
+    description: "Soft, baked fresh with natural grains and a hearty breakfast feel.",
+    tagline: "Healthy everyday staple"
+  },
+  {
+    id: 3,
+    name: "Vitamin C Serum",
+    category: "Beauty",
+    price: 680,
+    originalPrice: 820,
+    rating: 4.9,
+    stock: 12,
+    image:
+      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80",
+    badge: "Top Rated",
+    unit: "30 ml",
+    description: "Brightening daily serum with citrus extracts and skin-loving nutrients.",
+    tagline: "Glow-boosting wellness"
+  },
+  {
+    id: 4,
+    name: "Detergent Pods",
+    category: "Home Care",
+    price: 320,
+    originalPrice: 390,
+    rating: 4.6,
+    stock: 22,
+    image:
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80",
+    badge: "Eco",
+    unit: "18 pcs",
+    description: "Convenient detergent pods that cut grease and keep fabrics soft.",
+    tagline: "Easy home care"
+  },
+  {
+    id: 5,
+    name: "Hand Wash Gel",
+    category: "Personal Care",
+    price: 180,
+    originalPrice: 220,
+    rating: 4.5,
+    stock: 35,
+    image:
+      "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=900&q=80",
+    badge: "Daily Essential",
+    unit: "250 ml",
+    description: "Germ-fighting hand wash with aloe and mild fragrance for daily hygiene.",
+    tagline: "Clean and gentle"
+  },
+  {
+    id: 6,
+    name: "Avocado Oil",
+    category: "Wellness",
+    price: 520,
+    originalPrice: 610,
+    rating: 4.8,
+    stock: 14,
+    image:
+      "https://images.unsplash.com/photo-1474978528675-4a50a4508dc3?auto=format&fit=crop&w=900&q=80",
+    badge: "Healthy Choice",
+    unit: "500 ml",
+    description: "Cold-pressed avocado oil for cooking, skin care, and daily wellness.",
+    tagline: "Pure and nourishing"
+  },
+  {
+    id: 7,
+    name: "Rice & Lentils Combo",
+    category: "Groceries",
+    price: 260,
+    originalPrice: 310,
+    rating: 4.7,
+    stock: 26,
+    image:
+      "https://images.unsplash.com/photo-1518843875459-f738682238a6?auto=format&fit=crop&w=900&q=80",
+    badge: "Value Pack",
+    unit: "2 kg",
+    description: "Nutritious staple essentials designed for home-cooked daily meals.",
+    tagline: "Kitchen essential"
+  },
+  {
+    id: 8,
+    name: "Body Lotion",
+    category: "Personal Care",
+    price: 290,
+    originalPrice: 350,
+    rating: 4.6,
+    stock: 17,
+    image:
+      "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=900&q=80",
+    badge: "Hydrating",
+    unit: "400 ml",
+    description: "Moisturizing body lotion with shea butter and oat extracts.",
+    tagline: "Soft skin every day"
+  },
+  {
+    id: 9,
+    name: "Eco Dish Wash",
+    category: "Home Care",
+    price: 210,
+    originalPrice: 260,
+    rating: 4.5,
+    stock: 24,
+    image:
+      "https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?auto=format&fit=crop&w=900&q=80",
+    badge: "New",
+    unit: "500 ml",
+    description: "Plant-based dishwashing liquid that easily removes grease and odors.",
+    tagline: "Greener cleaning"
+  },
+  {
+    id: 10,
+    name: "Morning Protein Mix",
+    category: "Wellness",
+    price: 780,
+    originalPrice: 920,
+    rating: 4.9,
+    stock: 9,
+    image:
+      "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=80",
+    badge: "Popular",
+    unit: "500 g",
+    description: "Balanced breakfast mix packed with protein, oats, and nuts.",
+    tagline: "Energy in every scoop"
+  }
+];
+
+app.use(cors());
+app.use(express.json());
+
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok", app: "DailyNest" });
+});
+
+app.get("/api/categories", (_req, res) => {
+  const categories = ["All", ...new Set(products.map((product) => product.category))];
+  res.json(categories);
+});
+
+app.get("/api/products", (req, res) => {
+  const search = (req.query.search || "").toLowerCase();
+  const category = req.query.category || "All";
+
+  const filtered = products.filter((product) => {
+    const matchesCategory = category === "All" || product.category === category;
+    const matchesSearch =
+      !search ||
+      product.name.toLowerCase().includes(search) ||
+      product.description.toLowerCase().includes(search) ||
+      product.category.toLowerCase().includes(search);
+
+    return matchesCategory && matchesSearch;
+  });
+
+  res.json({ products: filtered, categories: ["All", ...new Set(products.map((product) => product.category))] });
+});
+
+app.get("/api/products/:id", (req, res) => {
+  const product = products.find((item) => item.id === Number(req.params.id));
+
+  if (!product) {
+    return res.status(404).json({ message: "Product not found" });
+  }
+
+  return res.json(product);
+});
+
+app.post("/api/auth/login", (req, res) => {
+  const { email, name } = req.body || {};
+
+  if (!email) {
+    return res.status(400).json({ message: "Email is required to continue" });
+  }
+
+  return res.json({
+    user: {
+      id: "guest-user",
+      name: name || "Daily Shopper",
+      email,
+      membership: "Prime Daily"
+    }
+  });
+});
+
+app.post("/api/orders", (req, res) => {
+  const { items, customer } = req.body || {};
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ message: "Cart is empty" });
+  }
+
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  return res.json({
+    success: true,
+    message: "Order placed successfully",
+    order: {
+      id: `ORD-${Date.now()}`,
+      total,
+      customer: customer || { name: "Guest" },
+      items,
+      status: "Confirmed"
+    }
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`DailyNest server running on http://localhost:${PORT}`);
+});
